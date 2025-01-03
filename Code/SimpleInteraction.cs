@@ -39,23 +39,17 @@ namespace SimpleInteractions {
 
 			InteractionPanelPrefab = GameObject.GetPrefab("InteractionsPanel.prefab");
 
-			if (!InteractionPanelPrefab.IsValid())
-			{
-				Log.Error($"No InteractionPanel prefab found for {this.GameObject.Name}!");
-			}
+			Assert.True(InteractionPanelPrefab.IsValid(), $"No InteractionPanel prefab found for {this.GameObject.Name}!");
 
 			if (!Collider.IsValid()) {
 				
 				Collider = this.GameObject.GetComponent<Collider>();
 
-				if (!Collider.IsValid())
-				{
-					Log.Error($"No collider found for {this.GameObject.Name}!");
-				}
+				Assert.True(Collider.IsValid(), $"No collider found for {this.GameObject.Name}!");
 			}
 		}
 
-		protected override async void OnUpdate()
+		protected override void OnUpdate()
 		{
 
 			if (!InteractionEnabled) return;
