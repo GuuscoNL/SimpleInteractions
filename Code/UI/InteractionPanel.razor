@@ -1,0 +1,47 @@
+@using Sandbox;
+@using Sandbox.UI;
+@using System.Threading.Tasks;
+@inherits PanelComponent
+@namespace Sandbox
+
+<root class="@(IsInteracting ? "interact" : "")">
+	<Image class="InteractionGlyph" Texture=@InputTexture/>
+	<div class="InteractionTitle"> @InteractionString </div>
+</root>
+
+@code
+{
+
+	private Texture InputTexture;
+	public string InteractionString {get; set;}
+	private bool IsInteracting = false;
+
+
+	/// <summary>
+	/// the hash determines if the system should be rebuilt. If it changes, it will be rebuilt
+	/// </summary>
+	protected override int BuildHash() => System.HashCode.Combine( InputTexture, InteractionString);
+
+	protected override void OnUpdate()
+	{
+		InputTexture = Input.GetGlyph("use", InputGlyphSize.Medium, true);
+	}
+
+	/// <summary>
+    /// Triggers the interaction animation.
+    /// </summary>
+    public async Task TriggerInteractAnimation()
+    {
+        if (IsInteracting)
+            return; // Prevent overlapping animations
+
+        IsInteracting = true;
+        StateHasChanged();
+
+        // Wait for the animation duration (e.g., 300ms)
+        await Task.Delay(100);
+
+        IsInteracting = false;
+        StateHasChanged();
+    }
+}
