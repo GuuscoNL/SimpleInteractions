@@ -14,6 +14,8 @@ namespace SimpleInteractions {
 	[Title( "Simple Interaction" )]
 	public class SimpleInteraction : Component
 	{
+		[Property]
+		public bool InteractionEnabled {get; set;} = true;
 
 		[Property, Title("Interaction Name")]
 		public string InteractionString {get; set;} = "Interact";
@@ -21,8 +23,12 @@ namespace SimpleInteractions {
 		[Property]
 		public float InteractionDistance {get; set;} = 120f;
 
-		[Property]
-		public bool InteractionEnabled {get; set;} = true;
+		[Property, ToggleGroup("InteractionHold")]
+		public bool InteractionHold {get; set;} = false;
+
+		[Property, Group("InteractionHold")]
+		public float InteractionHoldDuration {get; set;} = 1f;
+
 
 		/// <summary>
 		/// If not set, will try to find a collider on the same GameObject.
@@ -32,6 +38,9 @@ namespace SimpleInteractions {
 
 		static protected GameObject InteractionPanelPrefab ;
 		private GameObject CurrentPanel = null;
+		private TimeSince HoldTime = 0;
+		private bool Holding = false;
+		private bool HoldingInteractionHappened = false;
 
 
 		protected override void OnStart()
@@ -89,6 +98,8 @@ namespace SimpleInteractions {
 
 			Vector3 pos = tr.GameObject.WorldPosition;
 			CurrentPanel.WorldPosition = pos;
+
+			// Flip the panel to face the camera
 			Rotation camRotation = Scene.Camera.WorldRotation;
 
 			Angles ang = camRotation.Angles();
@@ -100,10 +111,44 @@ namespace SimpleInteractions {
 			InteractionPanel panel = CurrentPanel.GetComponent<InteractionPanel>();
 			panel.InteractionString = InteractionString;
 
-			if (Input.Pressed("use"))
+
+
+			if (!InteractionHold)
 			{
-				_ = panel.TriggerInteractAnimation();
-				OnInteract();
+				if (Input.Pressed("use"))
+				{
+					_ = panel.TriggerInteractAnimation();
+					OnInteract();
+				}
+				return;
+			}
+
+			
+			if (!Input.Down("use"))
+			{
+				Holding = false;
+				HoldingInteractionHappened = false;
+				return;
+			}
+
+			// Interaction already happened. Player needs to release and press again.
+			if (HoldingInteractionHappened)
+			{
+				return;
+			}
+
+			if (Holding)
+			{
+				if (HoldTime.Relative >= InteractionHoldDuration)
+				{
+					HoldingInteractionHappened = true;
+					OnInteract();
+				}
+			} else
+			{
+				// Started holding.
+				Holding = true;
+				HoldTime = 0;
 			}
 		}
 
