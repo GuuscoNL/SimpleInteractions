@@ -81,10 +81,16 @@ namespace SimpleInteractions {
 				} else
 				{
 					_ = DeletePanel();
+					
+					// Force repressing use in case you looked away while holding down.
+					HoldingInteractionHappened = true;
 				}
 			} else
 			{
 				_ = DeletePanel();
+				
+				// Force repressing use in case you looked away while holding down.
+				HoldingInteractionHappened = true;
 			}
 		}
 
