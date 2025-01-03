@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Sandbox;
+using Sandbox.Utility;
 using Sandbox.Diagnostics;
 using Sandbox.UI;
 
@@ -27,7 +28,7 @@ namespace SimpleInteractions {
 		public bool InteractionHold {get; set;} = false;
 
 		[Property, Group("InteractionHold")]
-		public float InteractionHoldDuration {get; set;} = 1f;
+		public float InteractionHoldDuration {get; set;} = 0.5f;
 
 
 		/// <summary>
@@ -61,7 +62,20 @@ namespace SimpleInteractions {
 		protected override void OnUpdate()
 		{
 
-			if (!InteractionEnabled) return;
+			if (!InteractionEnabled) 
+			{
+				// Reset everything just in case
+				Holding = false;
+				HoldingInteractionHappened = false;
+
+				// Delete the Interaction panel otherwise it would just float there...
+				InteractionPanel panel = CurrentPanel.GetComponent<InteractionPanel>();
+				if (panel.IsValid()) {
+					_ = DeletePanel();
+				}
+
+				return;
+			}
 
 			Ray ray = Scene.Camera.GameObject.Transform.World.ForwardRay;
 
@@ -116,6 +130,8 @@ namespace SimpleInteractions {
 
 			InteractionPanel panel = CurrentPanel.GetComponent<InteractionPanel>();
 			panel.InteractionString = InteractionString;
+			panel.IsHoldInteraction = InteractionHold;
+			panel.ProgressionHold = 0;
 
 
 
@@ -145,7 +161,9 @@ namespace SimpleInteractions {
 
 			if (Holding)
 			{
-				if (HoldTime.Relative >= InteractionHoldDuration)
+				
+				panel.ProgressionHold = Easing.QuadraticInOut(HoldTime / InteractionHoldDuration);
+				if (HoldTime >= InteractionHoldDuration)
 				{
 					HoldingInteractionHappened = true;
 					OnInteract();
@@ -155,6 +173,7 @@ namespace SimpleInteractions {
 				// Started holding.
 				Holding = true;
 				HoldTime = 0;
+				_ = panel.TriggerInteractAnimation();
 			}
 		}
 
