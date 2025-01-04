@@ -186,7 +186,7 @@ namespace SimpleInteractions {
 			CurrentPanel.Destroy();
 		}
 
-		[Rpc.Owner]
+		[Rpc.Broadcast]
 		protected virtual void OnInteract()
 		{
 			Log.Error($"Interaction not implemented for {this.GameObject.Name}!");
