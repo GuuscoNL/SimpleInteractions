@@ -37,16 +37,16 @@ namespace SimpleInteractions {
 		[Property, Title("Override collider")]
 		public Collider Collider { get; set; }
 
-		static protected GameObject InteractionPanelPrefab ;
 		private GameObject CurrentPanel = null;
+
 		private TimeSince HoldTime = 0;
 		private bool Holding = false;
 		private bool HoldingInteractionHappened = false;
 
+		static protected GameObject InteractionPanelPrefab ;
 
 		protected override void OnStart()
 		{
-
 			InteractionPanelPrefab = GameObject.GetPrefab("InteractionsPanel.prefab");
 
 			Assert.True(InteractionPanelPrefab.IsValid(), $"No InteractionPanel prefab found for {this.GameObject.Name}!");
@@ -61,7 +61,6 @@ namespace SimpleInteractions {
 
 		protected override void OnUpdate()
 		{
-
 			if (!InteractionEnabled) 
 			{
 				// Reset everything just in case
@@ -69,29 +68,46 @@ namespace SimpleInteractions {
 				HoldingInteractionHappened = false;
 
 				// Delete the Interaction panel otherwise it would just float there...
-				InteractionPanel panel = CurrentPanel.GetComponent<InteractionPanel>();
-				if (panel.IsValid()) {
-					_ = DeletePanel();
+				if (CurrentPanel.IsValid())
+				{
+					InteractionPanel panel = CurrentPanel.GetComponent<InteractionPanel>();
+					if (panel.IsValid()) {
+						_ = DeletePanel();
+					}
 				}
-
 				return;
 			}
 
 			Ray ray = Scene.Camera.GameObject.Transform.World.ForwardRay;
 
 			SceneTraceResult tr = Scene.Trace.Ray(ray, InteractionDistance)
-			.WithoutTags("player")
+			.WithoutTags("IgnoreInteract")
+			.HitTriggers()
 			.Run();
 
 			
 			// Gizmo.Draw.Line(tr.StartPosition, tr.EndPosition);
+
+			// TODO: Probably best if we Get all the hits and iterate through them 
+			// so that normal triggers don't block the interaction.
 			if (tr.Hit)
 			{
-				Collider hitCollider = tr.GameObject.GetComponent<Collider>();
+				Collider HitCollider = tr.Shape.Collider as Collider;
+				Vector3 offset = Vector3.Zero;
 
-				if (hitCollider == Collider)
+				if (HitCollider is BoxCollider)
 				{
-					OnHover(tr);
+					offset = (HitCollider as BoxCollider).Center;
+				} else if (HitCollider is SphereCollider)
+				{
+					offset = new Vector3((HitCollider as SphereCollider).Center);
+				}
+
+
+				if (HitCollider == Collider)
+				{
+					Vector3 pos = new Vector3(offset.x, offset.y, -offset.z);
+					OnHover(HitCollider.GameObject.WorldPosition - pos);
 				} else
 				{
 					_ = DeletePanel();
@@ -108,15 +124,13 @@ namespace SimpleInteractions {
 			}
 		}
 
-		private void OnHover(SceneTraceResult tr)
+		private void OnHover(Vector3 pos)
 		{
-
 			if (!CurrentPanel.IsValid())
 			{
 				CurrentPanel = InteractionPanelPrefab.Clone();
 			}
 
-			Vector3 pos = tr.GameObject.WorldPosition;
 			CurrentPanel.WorldPosition = pos;
 
 			// Flip the panel to face the camera
@@ -161,7 +175,6 @@ namespace SimpleInteractions {
 
 			if (Holding)
 			{
-				
 				panel.ProgressionHold = Easing.QuadraticInOut(HoldTime / InteractionHoldDuration);
 				if (HoldTime >= InteractionHoldDuration)
 				{
