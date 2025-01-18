@@ -1,7 +1,7 @@
 using Editor;
 
 
-[Icon( "check_box_outline_blank" )]
+[Icon( "touch_app" )]
 [Title( "SimpleInteraction" )]
 [Description( "A simple interaction component so you can interact with objects" )]
 public partial class SimpleInteractionTemplate : ComponentTemplate

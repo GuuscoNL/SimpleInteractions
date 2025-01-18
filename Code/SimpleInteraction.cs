@@ -9,6 +9,7 @@ namespace SimpleInteractions {
 	/// <summary>
 	/// Simple interaction component
 	/// </summary>
+	[Icon( "touch_app" )]
 	[Title( "Simple Interaction" )]
 	public class SimpleInteraction : Component
 	{
