@@ -1,11 +1,8 @@
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Sandbox;
 using Sandbox.Utility;
 using Sandbox.Diagnostics;
-using Sandbox.UI;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SimpleInteractions {
 
@@ -57,6 +54,7 @@ namespace SimpleInteractions {
 
 				Assert.True(Collider.IsValid(), $"No collider found for {this.GameObject.Name}!");
 			}
+			this.GameObject.Tags.Add("Interact");
 		}
 
 		protected override void OnUpdate()
@@ -80,19 +78,42 @@ namespace SimpleInteractions {
 
 			Ray ray = Scene.Camera.GameObject.Transform.World.ForwardRay;
 
-			SceneTraceResult tr = Scene.Trace.Ray(ray, InteractionDistance)
+			var traces = Scene.Trace.Ray(ray, InteractionDistance)
 			.WithoutTags("IgnoreInteract")
 			.HitTriggers()
-			.Run();
-
+			.RunAll();
 			
 			// Gizmo.Draw.Line(tr.StartPosition, tr.EndPosition);
 
-			// TODO: Probably best if we Get all the hits and iterate through them 
-			// so that normal triggers don't block the interaction.
-			if (tr.Hit)
+			if (traces.Count() <= 0)
 			{
+				_ = DeletePanel();
+				
+				// Force repressing use in case you looked away while holding down.
+				HoldingInteractionHappened = true;
+				return;
+			}
+
+			foreach (var tr in traces)
+			{
+
 				Collider HitCollider = tr.Shape.Collider as Collider;
+
+				// If it's a trigger and it doesn't have the interact tag, skip it.
+				// We can see through it.
+				if (HitCollider.IsTrigger && !HitCollider.GameObject.Tags.Has("Interact"))
+				{
+					continue;
+				} else if (!HitCollider.IsTrigger && !HitCollider.GameObject.Tags.Has("Interact"))
+				{
+					// Something is blocking the interaction.
+					_ = DeletePanel();
+					
+					// Force repressing use in case you looked away while holding down.
+					HoldingInteractionHappened = true;
+					break;
+				}
+
 				Vector3 offset = Vector3.Zero;
 
 				if (HitCollider is BoxCollider)
@@ -106,8 +127,9 @@ namespace SimpleInteractions {
 
 				if (HitCollider == Collider)
 				{
-					Vector3 pos = new Vector3(offset.x, offset.y, -offset.z);
+					Vector3 pos = new Vector3(offset.x, offset.y, - offset.z);
 					OnHover(HitCollider.GameObject.WorldPosition - pos);
+					break;
 				} else
 				{
 					_ = DeletePanel();
@@ -115,12 +137,6 @@ namespace SimpleInteractions {
 					// Force repressing use in case you looked away while holding down.
 					HoldingInteractionHappened = true;
 				}
-			} else
-			{
-				_ = DeletePanel();
-				
-				// Force repressing use in case you looked away while holding down.
-				HoldingInteractionHappened = true;
 			}
 		}
 
