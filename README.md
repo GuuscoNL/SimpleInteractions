@@ -1,6 +1,8 @@
 # Simple Interactions
 Simple Interactions is an interaction system that focusses on keeping it simple. It is mostly meant for prototypes where it is handy for players to interact with object. For example you are creating particle effects and you have a demo game were people can see them in action. You can use this library so people can press buttons that activate your particles.
 
+Only first person is supported using the build in player controller.
+
 Feel free to fork this and make your own changes. I hope it helps you out!
 
 # How to use
