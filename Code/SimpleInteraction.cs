@@ -4,29 +4,30 @@ using Sandbox.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace SimpleInteractions {
+namespace SimpleInteractions
+{
 
 	/// <summary>
 	/// Simple interaction component
 	/// </summary>
-	[Icon( "touch_app" )]
-	[Title( "Simple Interaction" )]
+	[Icon("touch_app")]
+	[Title("Simple Interaction")]
 	public class SimpleInteraction : Component
 	{
 		[Property]
-		public bool InteractionEnabled {get; set;} = true;
+		public bool InteractionEnabled { get; set; } = true;
 
 		[Property, Title("Interaction Name")]
-		public string InteractionString {get; set;} = "Interact";
+		public string InteractionString { get; set; } = "Interact";
 
 		[Property]
-		public float InteractionDistance {get; set;} = 120f;
+		public float InteractionDistance { get; set; } = 120f;
 
 		[Property, ToggleGroup("InteractionHold")]
-		public bool InteractionHold {get; set;} = false;
+		public bool InteractionHold { get; set; } = false;
 
 		[Property, Group("InteractionHold")]
-		public float InteractionHoldDuration {get; set;} = 0.5f;
+		public float InteractionHoldDuration { get; set; } = 0.5f;
 
 
 		/// <summary>
@@ -41,7 +42,7 @@ namespace SimpleInteractions {
 		private bool Holding = false;
 		private bool HoldingInteractionHappened = false;
 
-		static protected GameObject InteractionPanelPrefab ;
+		static protected GameObject InteractionPanelPrefab;
 
 		protected override void OnStart()
 		{
@@ -49,8 +50,9 @@ namespace SimpleInteractions {
 
 			Assert.True(InteractionPanelPrefab.IsValid(), $"No InteractionPanel prefab found for {this.GameObject.Name}!");
 
-			if (!Collider.IsValid()) {
-				
+			if (!Collider.IsValid())
+			{
+
 				Collider = this.GameObject.GetComponent<Collider>();
 
 				Assert.True(Collider.IsValid(), $"No collider found for {this.GameObject.Name}!");
@@ -60,7 +62,7 @@ namespace SimpleInteractions {
 
 		protected override void OnUpdate()
 		{
-			if (!InteractionEnabled) 
+			if (!InteractionEnabled)
 			{
 				// Reset everything just in case
 				Holding = false;
@@ -70,7 +72,8 @@ namespace SimpleInteractions {
 				if (CurrentPanel.IsValid())
 				{
 					InteractionPanel panel = CurrentPanel.GetComponent<InteractionPanel>();
-					if (panel.IsValid()) {
+					if (panel.IsValid())
+					{
 						_ = DeletePanel();
 					}
 				}
@@ -83,13 +86,13 @@ namespace SimpleInteractions {
 			.WithoutTags("IgnoreInteract")
 			.HitTriggers()
 			.RunAll();
-			
+
 			// Gizmo.Draw.Line(tr.StartPosition, tr.EndPosition);
 
 			if (traces.Count() <= 0)
 			{
 				_ = DeletePanel();
-				
+
 				// Force repressing use in case you looked away while holding down.
 				HoldingInteractionHappened = true;
 				return;
@@ -105,11 +108,12 @@ namespace SimpleInteractions {
 				if (HitCollider.IsTrigger && !HitCollider.GameObject.Tags.Has("Interact"))
 				{
 					continue;
-				} else if (!HitCollider.IsTrigger && !HitCollider.GameObject.Tags.Has("Interact"))
+				}
+				else if (!HitCollider.IsTrigger && !HitCollider.GameObject.Tags.Has("Interact"))
 				{
 					// Something is blocking the interaction.
 					_ = DeletePanel();
-					
+
 					// Force repressing use in case you looked away while holding down.
 					HoldingInteractionHappened = true;
 					break;
@@ -120,7 +124,8 @@ namespace SimpleInteractions {
 				if (HitCollider is BoxCollider)
 				{
 					offset = (HitCollider as BoxCollider).Center;
-				} else if (HitCollider is SphereCollider)
+				}
+				else if (HitCollider is SphereCollider)
 				{
 					offset = new Vector3((HitCollider as SphereCollider).Center);
 				}
@@ -128,13 +133,14 @@ namespace SimpleInteractions {
 
 				if (HitCollider == Collider)
 				{
-					Vector3 pos = new Vector3(offset.x, offset.y, - offset.z);
+					Vector3 pos = new Vector3(offset.x, offset.y, -offset.z);
 					OnHover(HitCollider.GameObject.WorldPosition - pos);
 					break;
-				} else
+				}
+				else
 				{
 					_ = DeletePanel();
-					
+
 					// Force repressing use in case you looked away while holding down.
 					HoldingInteractionHappened = true;
 				}
@@ -176,7 +182,7 @@ namespace SimpleInteractions {
 				return;
 			}
 
-			
+
 			if (!Input.Down("use"))
 			{
 				Holding = false;
@@ -198,7 +204,8 @@ namespace SimpleInteractions {
 					HoldingInteractionHappened = true;
 					OnInteract();
 				}
-			} else
+			}
+			else
 			{
 				// Started holding.
 				Holding = true;
@@ -209,10 +216,10 @@ namespace SimpleInteractions {
 
 		async private Task DeletePanel()
 		{
-			if(!CurrentPanel.IsValid()) return;
+			if (!CurrentPanel.IsValid()) return;
 
 			CurrentPanel.GetComponent<PanelComponent>().Panel.Delete();
-			await Task.DelaySeconds( 0.1f );
+			await Task.DelaySeconds(0.1f);
 			CurrentPanel.Destroy();
 		}
 
