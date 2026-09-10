@@ -6,7 +6,7 @@ Only first person is supported using the build in player controller.
 Feel free to fork this and make your own changes. I hope it helps you out!
 
 # How to use
-Once installed you can go to `add new component` and select `New component`. Under `Create Script From Template` select `New SimpleInteraction` component.
+Once installed you can go to `add new component` and select `New component`. Under `Create Script From Template` select `New SimpleInteraction` component. Add the `ignoreinteract` tag to gameobjects that you want the interact ray to go through. For example the player, so that the player itself doesn't block the interaction ray.
 
 `OnInteract()` is called when the player interacts with the object. You can use this to do whatever you want. For example, you can make a door open, play a sound, or spawn a particle effect.
 
