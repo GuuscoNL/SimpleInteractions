@@ -10,30 +10,27 @@ namespace SimpleInteractions
 	/// <summary>
 	/// Simple interaction component
 	/// </summary>
-	[Icon("touch_app")]
-	[Title("Simple Interaction")]
+	[Icon( "touch_app" )]
+	[Title( "Simple Interaction" )]
 	public class SimpleInteraction : Component
 	{
-		[Property]
-		public bool InteractionEnabled { get; set; } = true;
-
-		[Property, Title("Interaction Name")]
+		[Property, Title( "Interaction Name" )]
 		public string InteractionString { get; set; } = "Interact";
 
 		[Property]
 		public float InteractionDistance { get; set; } = 120f;
 
-		[Property, ToggleGroup("InteractionHold")]
+		[Property, ToggleGroup( "InteractionHold" )]
 		public bool InteractionHold { get; set; } = false;
 
-		[Property, Group("InteractionHold")]
+		[Property, Group( "InteractionHold" )]
 		public float InteractionHoldDuration { get; set; } = 0.5f;
 
 
 		/// <summary>
 		/// If not set, will try to find a collider on the same GameObject.
 		/// </summary>
-		[Property, Title("Override collider")]
+		[Property, Title( "Override collider" )]
 		public Collider Collider { get; set; }
 
 		private GameObject CurrentPanel = null;
@@ -46,33 +43,33 @@ namespace SimpleInteractions
 
 		protected override void OnStart()
 		{
-			InteractionPanelPrefab = GameObject.GetPrefab("InteractionsPanel.prefab");
+			InteractionPanelPrefab = GameObject.GetPrefab( "InteractionsPanel.prefab" );
 
-			Assert.True(InteractionPanelPrefab.IsValid(), $"No InteractionPanel prefab found for {this.GameObject.Name}!");
+			Assert.True( InteractionPanelPrefab.IsValid(), $"No InteractionPanel prefab found for {this.GameObject.Name}!" );
 
-			if (!Collider.IsValid())
+			if ( !Collider.IsValid() )
 			{
 
 				Collider = this.GameObject.GetComponent<Collider>();
 
-				Assert.True(Collider.IsValid(), $"No collider found for {this.GameObject.Name}!");
+				Assert.True( Collider.IsValid(), $"No collider found for {this.GameObject.Name}!" );
 			}
-			this.GameObject.Tags.Add("Interact");
+			this.GameObject.Tags.Add( "Interact" );
 		}
 
 		protected override void OnUpdate()
 		{
-			if (!InteractionEnabled)
+			if ( !IsAllowed() ) // TODO: Not every frame pls
 			{
 				// Reset everything just in case
 				Holding = false;
 				HoldingInteractionHappened = false;
 
 				// Delete the Interaction panel otherwise it would just float there...
-				if (CurrentPanel.IsValid())
+				if ( CurrentPanel.IsValid() )
 				{
 					InteractionPanel panel = CurrentPanel.GetComponent<InteractionPanel>();
-					if (panel.IsValid())
+					if ( panel.IsValid() )
 					{
 						_ = DeletePanel();
 					}
@@ -82,14 +79,14 @@ namespace SimpleInteractions
 
 			Ray ray = Scene.Camera.GameObject.Transform.World.ForwardRay;
 
-			var traces = Scene.Trace.Ray(ray, InteractionDistance)
-			.WithoutTags("IgnoreInteract")
+			var traces = Scene.Trace.Ray( ray, InteractionDistance )
+			.WithoutTags( "IgnoreInteract" )
 			.HitTriggers()
 			.RunAll();
 
 			// Gizmo.Draw.Line(tr.StartPosition, tr.EndPosition);
 
-			if (traces.Count() <= 0)
+			if ( traces.Count() <= 0 )
 			{
 				_ = DeletePanel();
 
@@ -98,18 +95,18 @@ namespace SimpleInteractions
 				return;
 			}
 
-			foreach (var tr in traces)
+			foreach ( var tr in traces )
 			{
 
 				Collider HitCollider = tr.Shape.Collider as Collider;
 
 				// If it's a trigger and it doesn't have the interact tag, skip it.
 				// We can see through it.
-				if (HitCollider.IsTrigger && !HitCollider.GameObject.Tags.Has("Interact"))
+				if ( HitCollider.IsTrigger && !HitCollider.GameObject.Tags.Has( "Interact" ) )
 				{
 					continue;
 				}
-				else if (!HitCollider.IsTrigger && !HitCollider.GameObject.Tags.Has("Interact"))
+				else if ( !HitCollider.IsTrigger && !HitCollider.GameObject.Tags.Has( "Interact" ) )
 				{
 					// Something is blocking the interaction.
 					_ = DeletePanel();
@@ -121,20 +118,20 @@ namespace SimpleInteractions
 
 				Vector3 offset = Vector3.Zero;
 
-				if (HitCollider is BoxCollider)
+				if ( HitCollider is BoxCollider )
 				{
 					offset = (HitCollider as BoxCollider).Center;
 				}
-				else if (HitCollider is SphereCollider)
+				else if ( HitCollider is SphereCollider )
 				{
-					offset = new Vector3((HitCollider as SphereCollider).Center);
+					offset = new Vector3( (HitCollider as SphereCollider).Center );
 				}
 
 
-				if (HitCollider == Collider)
+				if ( HitCollider == Collider )
 				{
-					Vector3 pos = new Vector3(offset.x, offset.y, -offset.z);
-					OnHover(HitCollider.GameObject.WorldPosition - pos);
+					Vector3 pos = new Vector3( offset.x, offset.y, -offset.z );
+					OnHover( HitCollider.GameObject.WorldPosition - pos );
 					break;
 				}
 				else
@@ -147,9 +144,9 @@ namespace SimpleInteractions
 			}
 		}
 
-		private void OnHover(Vector3 pos)
+		private void OnHover( Vector3 pos )
 		{
-			if (!CurrentPanel.IsValid())
+			if ( !CurrentPanel.IsValid() )
 			{
 				CurrentPanel = InteractionPanelPrefab.Clone();
 			}
@@ -172,9 +169,9 @@ namespace SimpleInteractions
 
 
 
-			if (!InteractionHold)
+			if ( !InteractionHold )
 			{
-				if (Input.Pressed("use"))
+				if ( Input.Pressed( "use" ) )
 				{
 					_ = panel.TriggerInteractAnimation();
 					OnInteract();
@@ -183,7 +180,7 @@ namespace SimpleInteractions
 			}
 
 
-			if (!Input.Down("use"))
+			if ( !Input.Down( "use" ) )
 			{
 				Holding = false;
 				HoldingInteractionHappened = false;
@@ -191,15 +188,15 @@ namespace SimpleInteractions
 			}
 
 			// Interaction already happened. Player needs to release and press again.
-			if (HoldingInteractionHappened)
+			if ( HoldingInteractionHappened )
 			{
 				return;
 			}
 
-			if (Holding)
+			if ( Holding )
 			{
-				panel.ProgressionHold = Easing.QuadraticInOut(HoldTime / InteractionHoldDuration);
-				if (HoldTime >= InteractionHoldDuration)
+				panel.ProgressionHold = Easing.QuadraticInOut( HoldTime / InteractionHoldDuration );
+				if ( HoldTime >= InteractionHoldDuration )
 				{
 					HoldingInteractionHappened = true;
 					OnInteract();
@@ -216,17 +213,22 @@ namespace SimpleInteractions
 
 		async private Task DeletePanel()
 		{
-			if (!CurrentPanel.IsValid()) return;
+			if ( !CurrentPanel.IsValid() ) return;
 
 			CurrentPanel.GetComponent<PanelComponent>().Panel.Delete();
-			await Task.DelaySeconds(0.1f);
+			await Task.DelaySeconds( 0.1f );
 			CurrentPanel.Destroy();
 		}
 
 		[Rpc.Broadcast]
 		protected virtual void OnInteract()
 		{
-			Log.Error($"Interaction not implemented for {this.GameObject.Name}!");
+			Log.Error( $"Interaction not implemented for {this.GameObject.Name}!" );
+		}
+
+		protected virtual bool IsAllowed()
+		{
+			return true;
 		}
 
 	}

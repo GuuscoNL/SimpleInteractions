@@ -28,6 +28,11 @@ public partial class SimpleInteractionTemplate : ComponentTemplate
 			}
 
 
+			protected override bool IsAllowed()
+			{
+				return true;
+			}
+
 			[Rpc.Broadcast]
 			protected override void OnInteract()
 			{
