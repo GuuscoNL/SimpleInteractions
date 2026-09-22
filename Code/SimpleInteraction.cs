@@ -76,6 +76,7 @@ namespace SimpleInteractions
 				}
 				return;
 			}
+			// Log.Info( "============ NEW FRAME ============ " );
 
 			Ray ray = Scene.Camera.GameObject.Transform.World.ForwardRay;
 
@@ -108,7 +109,7 @@ namespace SimpleInteractions
 				}
 				else if ( !HitCollider.IsTrigger && !HitCollider.GameObject.Tags.Has( "Interact" ) )
 				{
-					// Something is blocking the interaction.
+					// A non interaction is blocking the interaction.
 					_ = DeletePanel();
 
 					// Force repressing use in case you looked away while holding down.
@@ -116,36 +117,52 @@ namespace SimpleInteractions
 					break;
 				}
 
-				Vector3 offset = Vector3.Zero;
+				//	Trigger interact
+				//	X Trigger not interact
+				//	Coll  interact
+				//	X Coll not interact
 
-				if ( HitCollider is BoxCollider )
-				{
-					offset = (HitCollider as BoxCollider).Center;
-				}
-				else if ( HitCollider is SphereCollider )
-				{
-					offset = new Vector3( (HitCollider as SphereCollider).Center );
-				}
-
-
+				// Log.Info( tr.GameObject.Name );
 				if ( HitCollider == Collider )
 				{
+					// Log.Info( $"HIT: {tr.GameObject.Name}" );
+					// Log.Info( $"HIT: {HitCollider}" );
+					// Log.Info( $"HIT: {Collider}" );
+
+					Vector3 offset = Vector3.Zero;
+
+					if ( HitCollider is BoxCollider )
+					{
+						offset = (HitCollider as BoxCollider).Center;
+					}
+					else if ( HitCollider is SphereCollider )
+					{
+						offset = new Vector3( (HitCollider as SphereCollider).Center );
+					}
+
 					Vector3 pos = new Vector3( offset.x, offset.y, -offset.z );
 					OnHover( HitCollider.GameObject.WorldPosition - pos );
 					break;
 				}
 				else
 				{
-					_ = DeletePanel();
 
-					// Force repressing use in case you looked away while holding down.
-					HoldingInteractionHappened = true;
+					if ( !HitCollider.IsTrigger && tr.GameObject.Tags.Has( "Interact" ) )
+					{
+						_ = DeletePanel();
+
+						// Force repressing use in case you looked away while holding down.
+						HoldingInteractionHappened = true;
+
+						break;
+					}
 				}
 			}
 		}
 
 		private void OnHover( Vector3 pos )
 		{
+			// Log.Info( "OnHover" );
 			if ( !CurrentPanel.IsValid() )
 			{
 				CurrentPanel = InteractionPanelPrefab.Clone();
